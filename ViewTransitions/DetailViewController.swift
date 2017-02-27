@@ -12,7 +12,7 @@ class DetailViewController: UIViewController {
 
     var dataForSelectedCell: String?
     
-    
+    @IBOutlet weak var detailStackView: UIStackView!
     @IBOutlet weak var dataLabel: UILabel!
     
     override func viewDidLoad() {
@@ -38,4 +38,13 @@ class DetailViewController: UIViewController {
     }
     */
 
+}
+
+extension DetailViewController : ListToDetailAnimatable {
+    var animatableCells: [UIView] {
+        return detailStackView.subviews
+    }
+    var morphViews: [UIView] {
+        return [dataLabel]
+    }
 }

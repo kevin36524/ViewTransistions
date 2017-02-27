@@ -33,5 +33,9 @@ class TempTableViewCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
+    
+    var morphViews: [UIView] {
+        return [cellLabel]
+    }
 
 }

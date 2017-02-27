@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     
     let dataSource = ["hello", "world","mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "kevin", "iOS", "swift"];
     var selectedIndexPath: IndexPath?
+    var selectedCell: TempTableViewCell?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,9 +58,19 @@ extension ViewController: UITableViewDataSource {
     }
 }
 
+extension ViewController: ListToDetailAnimatable {
+    var animatableCells : [UIView] {
+        return self.mainTableView.visibleCells.filter{ $0 != selectedCell}
+    }
+    var morphViews: [UIView] {
+        return self.selectedCell!.morphViews
+    }
+}
+
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.selectedIndexPath = indexPath
+        self.selectedCell = tableView.cellForRow(at: indexPath) as? TempTableViewCell
         self.performSegue(withIdentifier: "detail", sender: self)
         tableView.deselectRow(at: indexPath, animated: true)
     }
