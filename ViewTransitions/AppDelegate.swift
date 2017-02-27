@@ -97,6 +97,32 @@ class ListToDetailAnimataionController : NSObject, UIViewControllerAnimatedTrans
             canvas.removeFromSuperview()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
+        
+        animateMorphViews(views: Array(zip(fromAnimatableVC.morphViews, toAnimatableVC.morphViews)), canvas: canvas)
+    }
+    
+    func animateMorphView(fromView: UIView, toView: UIView, canvas: UIView) {
+        let fromView = canvas.snapShotView(view: fromView, afterUpdates: false)
+        let toView = canvas.snapShotView(view: toView, afterUpdates: true)
+        
+        let targetCenter = toView.center
+        toView.alpha = 0
+        toView.transform = fromView.scaleTranformfromToView(toView)
+        toView.center = fromView.center
+        
+        UIView.animate(withDuration: duration) { 
+            fromView.alpha = 0
+            fromView.transform = toView.transform.inverted()
+            fromView.center = targetCenter
+            
+            toView.alpha = 1
+            toView.transform = CGAffineTransform.identity
+            toView.center = targetCenter
+        }
+    }
+    
+    func animateMorphViews(views: [(fromView:UIView, toView:UIView)], canvas: UIView) {
+        views.forEach{ animateMorphView(fromView: $0.fromView, toView: $0.toView, canvas: canvas)}
     }
 }
 
@@ -113,7 +139,13 @@ extension UIView {
             return snapShotView(view: $0, afterUpdates: afterUpdates)
         }
     }
+    
+    func scaleTranformfromToView(_ toView: UIView) -> CGAffineTransform {
+        return CGAffineTransform(scaleX: bounds.width/toView.bounds.width, y: bounds.height/toView.bounds.height)
+    }
 }
+
+
 
 
 class FadeAnimataionController : NSObject, UIViewControllerAnimatedTransitioning {
