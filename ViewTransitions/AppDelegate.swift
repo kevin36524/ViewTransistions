@@ -12,7 +12,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    fileprivate var popController: DetailToListInteractionController?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -28,7 +28,66 @@ extension AppDelegate : UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return ListToDetailAnimataionController()
     }
+    
+    func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+        if viewController is ListToDetailAnimatable {
+            popController = DetailToListInteractionController(withViewController: viewController)
+        } else {
+            popController = nil
+        }
+    }
+    
+    func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        if popController?.isInteractive == true {
+            return popController
+        }
+        return nil
+    }
 }
+
+
+class DetailToListInteractionController: UIPercentDrivenInteractiveTransition {
+    var isInteractive = false
+    
+    private weak var viewController: UIViewController?
+    private let popGesture = UIScreenEdgePanGestureRecognizer()
+    
+    init(withViewController viewController: UIViewController) {
+        self.viewController = viewController
+        super.init()
+        popGesture.edges = .left
+        popGesture.addTarget(self, action: #selector(handlePan(pan:)))
+        viewController.view.addGestureRecognizer(popGesture)
+    }
+    
+    func handlePan(pan: UIScreenEdgePanGestureRecognizer) {
+        let translation = pan.translation(in: pan.view).x
+        let percent = translation/(0.5 * pan.view!.bounds.width)
+        let xVelocity = pan.velocity(in: pan.view).x
+        
+        switch pan.state {
+        case .possible:
+            break
+        case .began:
+            isInteractive = true
+            viewController?.navigationController?.popViewController(animated: true)
+        case .changed:
+            update(min(percent, 1.0))
+        case .ended:
+            isInteractive = false
+            if percent > 0.5 || xVelocity > 0 {
+                finish()
+            } else {
+                cancel()
+            }
+        case .cancelled, .failed:
+            isInteractive = false
+            cancel()
+        }
+        
+    }
+}
+
 
 protocol ListToDetailAnimatable {
     var animatableCells: [UIView] {get}
